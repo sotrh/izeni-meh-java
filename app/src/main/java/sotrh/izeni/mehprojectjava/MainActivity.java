@@ -3,6 +3,7 @@ package sotrh.izeni.mehprojectjava;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -14,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import sotrh.izeni.mehprojectjava.fragment.DealFragment;
+import sotrh.izeni.mehprojectjava.fragment.PreviousDealsFragment;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -25,15 +27,6 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -44,6 +37,7 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         // set the current fragment to DealFragment
+        navigationView.getMenu().getItem(0).setChecked(true);
         setCurrentFragment(DealFragment.newInstance(), DealFragment.TAG);
     }
 
@@ -88,7 +82,7 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_current) {
             setCurrentFragment(DealFragment.newInstance(), DealFragment.TAG);
         } else if (id == R.id.nav_previous) {
-            // todo: add previous deals fragments and display them
+            setCurrentFragment(PreviousDealsFragment.newInstance(), PreviousDealsFragment.TAG);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -96,9 +90,9 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private void setCurrentFragment(DealFragment fragment, String tag) {
+    private void setCurrentFragment(Fragment fragment, String tag) {
         getSupportFragmentManager().beginTransaction()
-                .add(R.id.fragment, fragment, tag)
+                .replace(R.id.fragment, fragment, tag)
                 .commit();
     }
 }

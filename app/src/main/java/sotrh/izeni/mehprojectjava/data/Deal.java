@@ -11,6 +11,7 @@ public class Deal extends RealmObject {
     public String id;
     public String title;
     public String specifications;
+    public String features;
     public String url;
 
     public RealmList<Item> items;
