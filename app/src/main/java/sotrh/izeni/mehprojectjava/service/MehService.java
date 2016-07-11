@@ -3,7 +3,7 @@ package sotrh.izeni.mehprojectjava.service;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import sotrh.izeni.mehprojectjava.ResponseWrapper;
-import sotrh.izeni.mehprojectjava.data.Secret;
+import sotrh.izeni.mehprojectjava.Secret;
 
 /**
  * Created by izeni on 7/11/16.
