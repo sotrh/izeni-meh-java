@@ -1,4 +1,4 @@
-package sotrh.izeni.mehprojectjava;
+package sotrh.izeni.mehprojectjava.data;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;

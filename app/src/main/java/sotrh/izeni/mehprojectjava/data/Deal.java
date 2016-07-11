@@ -1,7 +1,8 @@
-package sotrh.izeni.mehprojectjava;
+package sotrh.izeni.mehprojectjava.data;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import sotrh.izeni.mehprojectjava.RealmString;
 
 /**
  * Created by izeni on 7/11/16.
