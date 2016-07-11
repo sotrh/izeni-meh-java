@@ -8,9 +8,9 @@ import io.realm.RealmObject;
  */
 public class Item extends RealmObject {
     String id;
-    String condition;
-    String photo;
-    float price;
+    public String condition;
+    public String photo;
+    public float price;
 
     RealmList<Attribute> attributes;
 }

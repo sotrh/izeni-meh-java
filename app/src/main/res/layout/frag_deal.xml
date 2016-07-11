@@ -6,20 +6,21 @@
     <TextView
         android:id="@+id/title"
         android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_margin="4dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <android.support.v7.widget.RecyclerView
         android:layout_below="@+id/title"
+        android:layout_above="@+id/launchBrowser"
         android:id="@+id/items"
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
     </android.support.v7.widget.RecyclerView>
 
     <Button
-        android:layout_below="@+id/items"
+        android:layout_alignParentBottom="true"
         android:id="@+id/launchBrowser"
         android:text="View in Browser"
         android:layout_width="wrap_content"

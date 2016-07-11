@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.TextViewCompat;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -79,6 +80,8 @@ public class DealFragment extends Fragment {
         ((TextView) view.findViewById(R.id.title)).setText(deal.title);
 
         // fill the recycler view
-        ((RecyclerView) view.findViewById(R.id.items)).setAdapter(new ItemAdapter(deal.items));
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.items);
+        recyclerView.setAdapter(new ItemAdapter(deal.items));
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 }
