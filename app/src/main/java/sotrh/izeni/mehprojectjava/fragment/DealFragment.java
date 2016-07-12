@@ -83,16 +83,18 @@ public class DealFragment extends Fragment {
 
                 @Override
                 public void onFailure(Call<ResponseWrapper> call, Throwable t) {
-                    new AlertDialog.Builder(getContext())
-                            .setTitle("An Error Has Occurred")
-                            .setMessage(t.getMessage())
-                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialogInterface, int i) {
-                                    getActivity().finish();
-                                }
-                            })
-                            .show();
+                    if (!call.isCanceled()) {
+                        new AlertDialog.Builder(getContext())
+                                .setTitle("An Error Has Occurred")
+                                .setMessage(t.getMessage())
+                                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        getActivity().finish();
+                                    }
+                                })
+                                .show();
+                    }
                 }
             });
             setLoading(true);
@@ -110,6 +112,7 @@ public class DealFragment extends Fragment {
             realm.beginTransaction();
             realm.copyToRealmOrUpdate(deal);
             realm.commitTransaction();
+            getArguments().putSerializable("deal", deal);
         }
     }
 
