@@ -2,24 +2,25 @@ package sotrh.izeni.mehprojectjava.fragment;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.TextViewCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ProgressBar;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.gson.GsonBuilder;
+import com.squareup.picasso.Picasso;
 
+import io.realm.Realm;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -31,6 +32,7 @@ import sotrh.izeni.mehprojectjava.RealmStringTypeAdapter;
 import sotrh.izeni.mehprojectjava.ResponseWrapper;
 import sotrh.izeni.mehprojectjava.adapter.ItemAdapter;
 import sotrh.izeni.mehprojectjava.data.Deal;
+import sotrh.izeni.mehprojectjava.data.MehTheme;
 import sotrh.izeni.mehprojectjava.service.MehService;
 
 /**
@@ -38,10 +40,14 @@ import sotrh.izeni.mehprojectjava.service.MehService;
  */
 public class DealFragment extends Fragment {
     public static final String TAG = "DealFragment";
+    private Call<ResponseWrapper> call;
+    private Deal deal;
 
-    public static DealFragment newInstance() {
+    public static DealFragment newInstance(Deal deal) {
         DealFragment fragment = new DealFragment();
-        // todo: add arguments if needed
+        Bundle args = new Bundle();
+        args.putSerializable("deal", deal);
+        fragment.setArguments(args);
         return fragment;
     }
 
@@ -55,37 +61,56 @@ public class DealFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // load deal data using retrofit
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(MehService.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create(new GsonBuilder()
-                        .registerTypeAdapter(RealmString.class, new RealmStringTypeAdapter())
-                        .create()))
-                .build();
+        deal = (Deal) getArguments().getSerializable("deal");
 
-        MehService service = retrofit.create(MehService.class);
-        Call<ResponseWrapper> call = service.getCurrentDeal();
-        call.enqueue(new Callback<ResponseWrapper>() {
-            @Override
-            public void onResponse(Call<ResponseWrapper> call, Response<ResponseWrapper> response) {
-                updateUI(response.body());
-            }
+        if (deal == null) {
 
-            @Override
-            public void onFailure(Call<ResponseWrapper> call, Throwable t) {
-                new AlertDialog.Builder(getContext())
-                        .setTitle("An Error Has Occurred")
-                        .setMessage(t.getMessage())
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                getActivity().finish();
-                            }
-                        })
-                        .show();
-            }
-        });
-        setLoading(true);
+            // load deal data using retrofit
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(MehService.BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create(new GsonBuilder()
+                            .registerTypeAdapter(RealmString.class, new RealmStringTypeAdapter())
+                            .create()))
+                    .build();
+
+            MehService service = retrofit.create(MehService.class);
+            call = service.getCurrentDeal();
+            call.enqueue(new Callback<ResponseWrapper>() {
+                @Override
+                public void onResponse(Call<ResponseWrapper> call, Response<ResponseWrapper> response) {
+                    updateUI(response.body().deal);
+                }
+
+                @Override
+                public void onFailure(Call<ResponseWrapper> call, Throwable t) {
+                    new AlertDialog.Builder(getContext())
+                            .setTitle("An Error Has Occurred")
+                            .setMessage(t.getMessage())
+                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    getActivity().finish();
+                                }
+                            })
+                            .show();
+                }
+            });
+            setLoading(true);
+        } else {
+            updateUI(deal);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (call != null) call.cancel();
+        if (deal != null) {
+            Realm realm = Realm.getDefaultInstance();
+            realm.beginTransaction();
+            realm.copyToRealmOrUpdate(deal);
+            realm.commitTransaction();
+        }
     }
 
     private void setLoading(boolean loading) {
@@ -98,43 +123,52 @@ public class DealFragment extends Fragment {
         );
     }
 
-    private void updateUI(ResponseWrapper responseWrapper) {
+    private void updateUI(Deal deal) {
         // disable the progress bar
         setLoading(false);
 
         View view = getView();
-        final Deal deal = responseWrapper.deal;
+        this.deal = deal;
 
-
-
-        if (deal == null) {
+        if (this.deal == null) {
             getActivity().finish();
             return;
         }
 
+        // set the background image
+        Picasso.with(getContext()).load(this.deal.theme.backgroundImage).into((ImageView) view.findViewById(R.id.background));
+
+        // set the actionbar color
+        getActivity().findViewById(R.id.toolbar).setBackgroundDrawable(new ColorDrawable(Color.parseColor(this.deal.theme.backgroundColor)));
+
         // set the text views first
-        setText(R.id.title, deal.title);
-        setText(R.id.story_title, deal.story.title);
-        setText(R.id.story_body, deal.story.body);
-        setText(R.id.features, deal.features);
-        setText(R.id.specifications, deal.specifications);
+        setText(R.id.title, this.deal.title, this.deal.theme);
+        setText(R.id.story_title, this.deal.story.title, this.deal.theme);
+        setText(R.id.story_body, this.deal.story.body, this.deal.theme);
+        setText(R.id.features, this.deal.features, this.deal.theme);
+        setText(R.id.specifications, this.deal.specifications, this.deal.theme);
 
         // fill the recycler view
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.items);
-        recyclerView.setAdapter(new ItemAdapter(deal.items));
+        recyclerView.setAdapter(new ItemAdapter(this.deal.items, this.deal.theme));
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
 
         // set the launchBrowser click listener
         view.findViewById(R.id.launchBrowser).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(deal.url));
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(DealFragment.this.deal.url));
                 startActivity(intent);
             }
         });
+
     }
 
-    private void setText(int textView, String s) {
-        ((TextView) getView().findViewById(textView)).setText(s);
+    private void setText(int textView, String s, MehTheme theme) {
+        TextView textView1 = (TextView) getView().findViewById(textView);
+        textView1.setText(s);
+        int color = Color.BLACK;
+        if (theme.foreground.equals("light")) color = Color.WHITE;
+        textView1.setTextColor(color);
     }
 }

@@ -1,6 +1,7 @@
 package sotrh.izeni.mehprojectjava.adapter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,16 +14,20 @@ import com.squareup.picasso.Picasso;
 import io.realm.RealmList;
 import sotrh.izeni.mehprojectjava.R;
 import sotrh.izeni.mehprojectjava.data.Item;
+import sotrh.izeni.mehprojectjava.data.MehTheme;
 
 /**
  * Created by izeni on 7/11/16.
  */
 public class ItemAdapter extends RecyclerView.Adapter {
     private final RealmList<Item> items;
+    private int color;
     private Context context;
 
-    public ItemAdapter(RealmList<Item> items) {
+    public ItemAdapter(RealmList<Item> items, MehTheme theme) {
         this.items = items;
+        this.color = Color.BLACK;
+        if (theme.foreground.equals("light")) this.color = Color.WHITE;
     }
 
     @Override
@@ -38,7 +43,9 @@ public class ItemAdapter extends RecyclerView.Adapter {
 
         // set the text views first
         viewHolder.condition.setText(item.condition);
+        viewHolder.condition.setTextColor(color);
         viewHolder.price.setText("Price: $" + item.price);
+        viewHolder.price.setTextColor(color);
 
         // download the photo for the item asychronously
         Picasso.with(context).load(item.photo).into(viewHolder.photo);
