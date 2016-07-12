@@ -63,44 +63,51 @@ public class DealFragment extends Fragment {
 
         deal = (Deal) getArguments().getSerializable("deal");
 
+        if (deal == null && getArguments().containsKey("deal.id")) {
+            String id = getArguments().getString("deal.id");
+            deal = Realm.getDefaultInstance().where(Deal.class).contains("id", id).findFirst();
+        }
+
         if (deal == null) {
-
-            // load deal data using retrofit
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(MehService.BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create(new GsonBuilder()
-                            .registerTypeAdapter(RealmString.class, new RealmStringTypeAdapter())
-                            .create()))
-                    .build();
-
-            MehService service = retrofit.create(MehService.class);
-            call = service.getCurrentDeal();
-            call.enqueue(new Callback<ResponseWrapper>() {
-                @Override
-                public void onResponse(Call<ResponseWrapper> call, Response<ResponseWrapper> response) {
-                    updateUI(response.body().deal);
-                }
-
-                @Override
-                public void onFailure(Call<ResponseWrapper> call, Throwable t) {
-                    if (!call.isCanceled()) {
-                        new AlertDialog.Builder(getContext())
-                                .setTitle("An Error Has Occurred")
-                                .setMessage(t.getMessage())
-                                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        getActivity().finish();
-                                    }
-                                })
-                                .show();
-                    }
-                }
-            });
-            setLoading(true);
+            loadDealData();
         } else {
             updateUI(deal);
         }
+    }
+
+    private void loadDealData() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(MehService.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create(new GsonBuilder()
+                        .registerTypeAdapter(RealmString.class, new RealmStringTypeAdapter())
+                        .create()))
+                .build();
+
+        MehService service = retrofit.create(MehService.class);
+        call = service.getCurrentDeal();
+        call.enqueue(new Callback<ResponseWrapper>() {
+            @Override
+            public void onResponse(Call<ResponseWrapper> call, Response<ResponseWrapper> response) {
+                updateUI(response.body().deal);
+            }
+
+            @Override
+            public void onFailure(Call<ResponseWrapper> call, Throwable t) {
+                if (!call.isCanceled()) {
+                    new AlertDialog.Builder(getContext())
+                            .setTitle("An Error Has Occurred")
+                            .setMessage(t.getMessage())
+                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    getActivity().finish();
+                                }
+                            })
+                            .show();
+                }
+            }
+        });
+        setLoading(true);
     }
 
     @Override
@@ -108,11 +115,12 @@ public class DealFragment extends Fragment {
         super.onStop();
         if (call != null) call.cancel();
         if (deal != null) {
+            // persist the deal
             Realm realm = Realm.getDefaultInstance();
             realm.beginTransaction();
             realm.copyToRealmOrUpdate(deal);
             realm.commitTransaction();
-            getArguments().putSerializable("deal", deal);
+            getArguments().putString("deal.id", deal.id);
         }
     }
 
@@ -150,6 +158,9 @@ public class DealFragment extends Fragment {
         setText(R.id.story_body, this.deal.story.body, this.deal.theme);
         setText(R.id.features, this.deal.features, this.deal.theme);
         setText(R.id.specifications, this.deal.specifications, this.deal.theme);
+
+        ((TextView)view.findViewById(R.id.title)).setTextColor(Color.parseColor(this.deal.theme.accentColor));
+        ((TextView)view.findViewById(R.id.story_title)).setTextColor(Color.parseColor(this.deal.theme.accentColor));
 
         // fill the recycler view
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.items);
